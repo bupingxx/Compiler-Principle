@@ -263,14 +263,19 @@ void Lexical::analyse(const char* file_name){
     }
 
     // print output
+    ofstream outfile;
+    outfile.open("tokens.txt");
     cout << str << "Output of lexical analyzer:" << str << endl;
+    outfile << str << "Output of lexical analyzer:" << str << endl;
     for(auto item:results){
         cout << "< " << item.first << " , " << item.second << " >" << endl; 
+        outfile << "< " << item.first << " , " << item.second << " >" << endl; 
     }
     cout << endl;
 
     // close file
     infile.close();
+    outfile.close();
 }
 
 // change state
