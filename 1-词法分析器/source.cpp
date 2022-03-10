@@ -8,7 +8,13 @@ using namespace std;
 
 class Lexical{
 private:
+    // some flags
     int line_index;
+    int note_flag;     // notes like /* */
+    int char_flag;
+    int string_flag;
+    int dot_flag;
+
     // keyword set
     vector< pair<string, int> > keywords;
 
@@ -23,15 +29,12 @@ private:
 
     // char table
     vector<string> cT;
-    int char_flag;
 
     // string table
     vector<string> sT;
-    int string_flag;
 
     // constant table
     vector<string> CT;
-    int dot_flag;
 
     // keyword table
     vector<string> KT;
@@ -43,6 +46,7 @@ private:
     vector< pair<string, int> > results;
 public:
     Lexical();
+    Lexical(const char* file_name);
     ~Lexical();
     void print_table();
     void init_set();
@@ -58,16 +62,26 @@ public:
 };
 
 Lexical::Lexical(){
-    line_index = 0;
+    line_index = 1;
+    char_flag = 0;
+    string_flag = 0;
+    dot_flag = 0;
+    init_set();
+}
+
+Lexical::Lexical(const char* file_name){
+    line_index = 1;
     char_flag = 0;
     string_flag = 0;
     dot_flag = 0;
     init_set();
     print_table();
+    analyse(file_name);
 }
 
 Lexical::~Lexical(){
     keywords.clear();
+    separators.clear();
     opers.clear();
     iT.clear();
     cT.clear();
@@ -75,6 +89,7 @@ Lexical::~Lexical(){
     CT.clear();
     KT.clear();
     PT.clear();
+    results.clear();
 }
 
 // print the table of symbol-code
@@ -122,23 +137,23 @@ void Lexical::init_set(){
     keywords.emplace_back( make_pair("unsigned", 10));
     keywords.emplace_back( make_pair("short", 11));
     keywords.emplace_back( make_pair("auto", 12));
-    keywords.emplace_back( make_pair("constant", 13));
+    keywords.emplace_back( make_pair("const", 13));
     keywords.emplace_back( make_pair("main", 14));
     keywords.emplace_back( make_pair("if", 15));
     keywords.emplace_back( make_pair("else", 16));
     keywords.emplace_back( make_pair("for", 17));
     keywords.emplace_back( make_pair("continue", 18));
     keywords.emplace_back( make_pair("break", 19));
-    keywords.emplace_back( make_pair("while", 20));
-    keywords.emplace_back( make_pair("do", 21));
-    keywords.emplace_back( make_pair("switch", 22));
-    keywords.emplace_back( make_pair("case", 23));
+    keywords.emplace_back( make_pair("return", 20));
+    keywords.emplace_back( make_pair("void", 21));
+    keywords.emplace_back( make_pair("while", 22));
+    keywords.emplace_back( make_pair("do", 23));
     keywords.emplace_back( make_pair("struct", 24));
     keywords.emplace_back( make_pair("typedef", 25));
 
     separators.emplace_back( make_pair("\"", 26));
     separators.emplace_back( make_pair("\'", 27));
-    separators.emplace_back( make_pair(".", 28));
+    separators.emplace_back( make_pair("\\", 28));
     separators.emplace_back( make_pair(":", 29));
     separators.emplace_back( make_pair(";", 30));
     separators.emplace_back( make_pair(",", 31));
@@ -183,12 +198,13 @@ void Lexical::init_set(){
     opers.emplace_back( make_pair("|=", 69));
     opers.emplace_back( make_pair(">>=", 70));
     opers.emplace_back( make_pair("<<=", 71));
+    opers.emplace_back( make_pair(".", 71));
     return;
 }
 
 // check letter
 bool Lexical::is_letter(char ch){
-    return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z');
+    return ch == '_' || (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z');
 }
 
 // check digital
@@ -240,7 +256,7 @@ void Lexical::analyse(const char* file_name){
     while(getline(infile, tmp)){
         cout << tmp << endl;
     }
-    cout << endl;
+    cout << endl << endl;
     
     // return to begin
     infile.clear();
@@ -254,6 +270,16 @@ void Lexical::analyse(const char* file_name){
 
     while(getline(infile, tmp)){
         for(char ch:tmp){
+            // notes like /*...*/
+            if(note_flag){
+                token += ch;
+                if(token.size() > 1 && token.substr(token.size()-2, 2) == "*/"){
+                    note_flag = 0;
+                    token.clear();
+                }
+                continue;
+            }
+
             pre_state = state;
             state_change(state, ch);
             if(state != 0){
@@ -266,18 +292,32 @@ void Lexical::analyse(const char* file_name){
                     token += ch;
                 }
             }
+            // notes like // or /*
+            if(token.size() > 1){
+                if(token.substr(token.size()-2, 2) == "//"){
+                    state = 0;
+                    token.clear();
+                    break;
+                } else if (token.substr(token.size()-2, 2) == "/*"){
+                    note_flag = 1;
+                    token.clear();
+                    state = 0;
+                }
+            }
         }
         line_index++;
     }
+    state_to_code(pre_state, token);    // last char
 
-    if( char_flag || string_flag)
+    if(char_flag || string_flag)
         print_error(6, "");         // error
+    if(note_flag)
+        print_error(9, "");         // error
     
     // print output
     ofstream outfile;
     outfile.open("tokens.txt");
     cout << str << "Output of lexical analyzer:" << str << endl;
-    outfile << str << "Output of lexical analyzer:" << str << endl;
     for(auto item:results){
         cout << "< " << item.first << " , " << item.second << " >" << endl; 
         outfile << "< " << item.first << " , " << item.second << " >" << endl; 
@@ -291,57 +331,107 @@ void Lexical::analyse(const char* file_name){
 
 // change state
 void Lexical::state_change(int& state, char ch){
-    if(ch == ' '){
-        state = 0;
-        return;
-    }
-
     switch(state){
+        // start
         case 0:
-            if(is_letter((ch)))
-                state = 1;
-            else if(ch == '\''){
+            if(ch == '\''){
                 char_flag = char_flag == 0 ? 1 : 0;
                 state = 3;
-            }
-            else if(ch == '\"'){
+            } else if (ch == '\"'){
                 string_flag = string_flag == 0 ? 1 : 0;
                 state = 3;
-            }
-            else if(is_digital(ch))
+            } else if (char_flag || string_flag || is_letter(ch))
+                state = 1;
+            else if (ch == ' ')
+                state = 0;
+            else if (ch == '0')
+                state = 6;
+            else if (is_digital(ch))
                 state = 2;
-            else if(check_separator(string(1, ch)))
+            else if (check_separator(string(1, ch)))
                 state = 3;
-            else if(check_operator(string(1, ch)))
+            else if (check_operator(string(1, ch)))
                 state = 4;
             else print_error(0, to_string(state) + " - " + string(1, ch));  // error
             break;
+        // identify
         case 1:
-            if(is_letter((ch)) || is_digital(ch))
+            if(ch == '\'' || ch == '\"'){
+                state = 0;
+            } else if (char_flag || string_flag || is_letter((ch)) || is_digital(ch))
                 state = 1;
             else
                 state = 0;
             break;
+        // digit or float(decimal) 
         case 2:
-            if(is_digital(ch))
+            if(is_digital(ch)){
                 state = 2;
-            else if(ch == '.'){
+            } else if (ch == '.'){
                 if(dot_flag == 0){
                     dot_flag = 1;
                     state = 2;
                 } else {
                     print_error(1, "");         // error
                 }
-            }
-            else
+            } else if (ch == 'f'){
+                state = 5;
+            } else {
                 state = 0;
+            }
             break;
+        // separator
         case 3:
             state = 0;
             break;
+        // operator
         case 4:
             if(check_operator(string(1, ch)))
                 state = 4;
+            else
+                state = 0;
+            break;
+        // float(decimal) 
+        case 5:
+            state = 0;
+            break;
+        // binary, ocatal or hexadecimal
+        case 6:
+            if(ch == 'b' || ch == 'B')
+                state = 7;
+            else if(ch >= '0' && ch <= '7')
+                state = 8;
+            else if(ch == 'x' || ch == 'X')
+                state = 9;
+            else if(ch == '8' || ch == '9')
+                print_error(10, string(1, ch));
+            else
+                state = 0;
+            break;
+        // binary
+        case 7:
+            if(ch == '0' || ch == '1')
+                state = 7;
+            else if(is_digital(ch))
+                print_error(11, string(1, ch));
+            else
+                state = 0;
+            break;
+        // ocatal
+        case 8:
+            if(ch >= '0' && ch <= '7')
+                state = 8;
+            else if(ch == '8' || ch == '9')
+                print_error(10, string(1, ch));
+            else
+                state = 0;
+            break;
+        // hexadecimal
+        case 9:
+            if(is_digital(ch) || (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F'))
+                state = 9;
+            else if(is_letter(ch))
+                print_error(12, string(1, ch));
             else
                 state = 0;
             break;
@@ -362,6 +452,9 @@ void Lexical::state_to_code(int pre_state, string token){
     } else if (pre_state == 1){
         // cT
         if(char_flag){
+            int char_check = token[0]=='\\'?2:1;
+            if(token.size() > char_check)
+                print_error(8, token);    // error
             cT.emplace_back(token);
             results.emplace_back(make_pair(token, 1));
             return;
@@ -382,14 +475,14 @@ void Lexical::state_to_code(int pre_state, string token){
             results.emplace_back(make_pair(token, 0));
         }
 
-    } else if (pre_state == 2){
-        // CT
+    } else if (pre_state == 2 || (pre_state >= 5 && pre_state <= 9)){
+        // CT state-2, 5, 6, 7, 8, 9
         CT.emplace_back(token);
         results.emplace_back(make_pair(token, 3));
 
     } else if (pre_state == 3){
         int code = check_separator(token);
-        // PT
+        // PT state-3
         if(code){
             PT.emplace_back(token);
             results.emplace_back(make_pair(token, code));
@@ -398,6 +491,7 @@ void Lexical::state_to_code(int pre_state, string token){
         }
     } else if (pre_state == 4){
         int code = check_operator(token);
+        // PT state-4
         if(code){
             PT.emplace_back(token);
             results.emplace_back(make_pair(token, code));
@@ -411,7 +505,9 @@ void Lexical::state_to_code(int pre_state, string token){
 
 // print info when error
 void Lexical::print_error(int error_code, string info){
-    cout << "In line " << line_index << ":" << endl;
+    if(error_code != 6 && error_code != 9)
+        cout << "In line " << line_index << ":" << endl;
+    
     switch(error_code){
         case 0:
             cout << "Error in state_change, current state - char:" << info << endl;
@@ -437,6 +533,21 @@ void Lexical::print_error(int error_code, string info){
         case 7:
             cout << "Cannot open file:" << info << endl;
             break;
+        case 8:
+            cout << "Multi-character character constant:" << info << endl;
+            break;
+        case 9:
+            cout << "Notes like /* and */ do not match, you need check the code." << info << endl;
+            break;
+        case 10:
+            cout << "invalid digit \"" << info <<"\" in octal constant"<< endl;
+            break;
+        case 11:
+            cout << "invalid digit \"" << info <<"\" in binary constant"<< endl;
+            break;
+        case 12:
+            cout << "invalid digit \"" << info <<"\" in hexadecimal constant"<< endl;
+            break;
         default:
             cout << "Unknown error code:" << error_code << endl;
             break;
@@ -444,10 +555,10 @@ void Lexical::print_error(int error_code, string info){
     exit(0);
 }
 
-
 int main() {
     Lexical myLexical;
     myLexical.analyse("demo.c");
+    //Lexical myLexical("demo.c");
     return 0;
 }
 
