@@ -1,5 +1,5 @@
 int main (void){   
-    int a=1, d=2, c;   
+    int a=1, d=2.1, c;   
     if(a<=d){       
         c=a;       
         a=d;       
@@ -7,5 +7,6 @@ int main (void){
     }
     char ch[10]="ok";
     char x, y='a';
-    c=a+d;  
+    c=a+d;
 }
+

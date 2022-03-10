@@ -1,5 +1,6 @@
 #include<iostream>
 #include<iomanip>
+#include<cstdlib>
 #include<fstream>
 #include<string>
 #include<vector>
@@ -7,6 +8,7 @@ using namespace std;
 
 class Lexical{
 private:
+    int line_index;
     // keyword set
     vector< pair<string, int> > keywords;
 
@@ -20,10 +22,12 @@ private:
     vector<string> iT;
 
     // char table
-    vector<char> cT;
+    vector<string> cT;
+    int char_flag;
 
     // string table
     vector<string> sT;
+    int string_flag;
 
     // constant table
     vector<string> CT;
@@ -50,12 +54,16 @@ public:
     void analyse(const char* file_name);
     void state_change(int& state, char ch);
     void state_to_code(int pre_state, string token);
+    void print_error(int error_code, string info);
 };
 
 Lexical::Lexical(){
+    line_index = 0;
+    char_flag = 0;
+    string_flag = 0;
     dot_flag = 0;
     init_set();
-    //print_table();
+    print_table();
 }
 
 Lexical::~Lexical(){
@@ -223,8 +231,7 @@ void Lexical::analyse(const char* file_name){
     string tmp;
 
     if(infile.fail()){
-        cout << "Cannot open file:" << file_name << endl;
-        exit(0);
+        print_error(7, file_name);
     }
     
     // print input
@@ -240,18 +247,18 @@ void Lexical::analyse(const char* file_name){
     infile.seekg(0);
 
     // current state
-    int state = -1;
+    int state = 0;
     // pre state
-    int pre_state = -1;
+    int pre_state = 0;
     string token;
 
     while(getline(infile, tmp)){
         for(char ch:tmp){
             pre_state = state;
             state_change(state, ch);
-            if(state != -1)
+            if(state != 0){
                 token += ch;
-            else{
+            } else {
                 state_to_code(pre_state, token);
                 token.clear();
                 if(ch != ' '){
@@ -260,8 +267,12 @@ void Lexical::analyse(const char* file_name){
                 }
             }
         }
+        line_index++;
     }
 
+    if( char_flag || string_flag)
+        print_error(6, "");         // error
+    
     // print output
     ofstream outfile;
     outfile.open("tokens.txt");
@@ -281,62 +292,64 @@ void Lexical::analyse(const char* file_name){
 // change state
 void Lexical::state_change(int& state, char ch){
     if(ch == ' '){
-        state = -1;
+        state = 0;
         return;
     }
 
     switch(state){
-        case -1:
-            if(is_letter((ch)))
-                state = 0;
-            else if(is_digital(ch))
-                state = 1;
-            else if(check_separator(string(1, ch)))
-                state = 2;
-            else if(check_operator(string(1, ch)))
-                state = 3;
-            else state = -2;
-            break;
         case 0:
-            if(is_letter((ch)) || is_digital(ch))
-                state = 0;
-            else
-                state = -1;
+            if(is_letter((ch)))
+                state = 1;
+            else if(ch == '\''){
+                char_flag = char_flag == 0 ? 1 : 0;
+                state = 3;
+            }
+            else if(ch == '\"'){
+                string_flag = string_flag == 0 ? 1 : 0;
+                state = 3;
+            }
+            else if(is_digital(ch))
+                state = 2;
+            else if(check_separator(string(1, ch)))
+                state = 3;
+            else if(check_operator(string(1, ch)))
+                state = 4;
+            else print_error(0, to_string(state) + " - " + string(1, ch));  // error
             break;
         case 1:
-            if(is_digital(ch))
+            if(is_letter((ch)) || is_digital(ch))
                 state = 1;
+            else
+                state = 0;
+            break;
+        case 2:
+            if(is_digital(ch))
+                state = 2;
             else if(ch == '.'){
                 if(dot_flag == 0){
                     dot_flag = 1;
-                    state = 1;
+                    state = 2;
                 } else {
-                    cout << "This digit has too many decimal points." << endl;
-                    exit(0);
+                    print_error(1, "");         // error
                 }
             }
             else
-                state = -1;
-            break;
-        case 2:
-            state = -1;
+                state = 0;
             break;
         case 3:
+            state = 0;
+            break;
+        case 4:
             if(check_operator(string(1, ch)))
-                state = 3;
+                state = 4;
             else
-                state = -1;
+                state = 0;
             break;
         default:
-            cout << "There is a wrong state." << endl;
-            exit(0);
+            print_error(2, to_string(state));         // error
     }
 
-    if(state <= -2){
-        cout << "Error in state_change, error code:" << state << endl << "current char:" << ch << endl;
-        exit(0);
-    }
-    if(state != 1)
+    if(state != 2)
         dot_flag = 0;
         
     return;
@@ -344,9 +357,22 @@ void Lexical::state_change(int& state, char ch){
 
 // transfer token with pre_state to code
 void Lexical::state_to_code(int pre_state, string token){
-    if(pre_state == -1){
+    if(pre_state == 0){
         return;
-    } else if(pre_state == 0){
+    } else if (pre_state == 1){
+        // cT
+        if(char_flag){
+            cT.emplace_back(token);
+            results.emplace_back(make_pair(token, 1));
+            return;
+        }
+        // sT
+        if(string_flag){
+            sT.emplace_back(token);
+            results.emplace_back(make_pair(token, 2));
+            return;
+        }
+        // KT or iT
         int code = check_keyword(token);
         if(code){
             KT.emplace_back(token);
@@ -355,38 +381,69 @@ void Lexical::state_to_code(int pre_state, string token){
             iT.emplace_back(token);
             results.emplace_back(make_pair(token, 0));
         }
-        // change 此地方需要修改 
-        // 暂时默认所有字符都为标识符，实际上还要根据单引号、双引号判断是否为字符或字符串
-        // cT - 1  ST - 2
-    } else if(pre_state == 1){
+
+    } else if (pre_state == 2){
+        // CT
         CT.emplace_back(token);
         results.emplace_back(make_pair(token, 3));
-        // 数字即为常量，暂时不用修改
-    } else if(pre_state == 2){
+
+    } else if (pre_state == 3){
         int code = check_separator(token);
+        // PT
         if(code){
             PT.emplace_back(token);
             results.emplace_back(make_pair(token, code));
         } else {
-            cout << "There is a wrong separator:" << token << endl;
-            exit(0);
+            print_error(3, token);      // error
         }
-        // 分隔符，暂时不用修改
-    } else if(pre_state == 3){
+    } else if (pre_state == 4){
         int code = check_operator(token);
         if(code){
             PT.emplace_back(token);
             results.emplace_back(make_pair(token, code));
         } else {
-            cout << "There is a wrong operator:" << token << endl;
-            exit(0);
+            print_error(4, token);      // error
         }
-        // 运算符，暂时不用修改
     } else {
-        cout << "Cannot recognize token:" << token << endl;
-        exit(0);
+        print_error(5, token);          // error
     }
 }
+
+// print info when error
+void Lexical::print_error(int error_code, string info){
+    cout << "In line " << line_index << ":" << endl;
+    switch(error_code){
+        case 0:
+            cout << "Error in state_change, current state - char:" << info << endl;
+            break;
+        case 1:
+            cout << "There is a digit which has too many decimal points." << endl;
+            break;
+        case 2:
+            cout << "There is a wrong state:" << info << endl;
+            break;
+        case 3:
+            cout << "There is a wrong separator:" << info << endl;
+            break;
+        case 4:
+            cout << "There is a wrong operator:" << info << endl;
+            break;
+        case 5:
+            cout << "Cannot recognize token:" << info << endl;
+            break;
+        case 6:
+            cout << "Quotations do not match, you need check the code." << endl;
+            break;
+        case 7:
+            cout << "Cannot open file:" << info << endl;
+            break;
+        default:
+            cout << "Unknown error code:" << error_code << endl;
+            break;
+    }
+    exit(0);
+}
+
 
 int main() {
     Lexical myLexical;
