@@ -1,0 +1,175 @@
+*************************** Output of LL1 synatactic analyzer:***************************
+     Analysis stack     Current symbol      Remaining seq                     Operation
+                 #S                                  p=p#                         Start
+                 #S                  p                =p#              select: S -> ES'
+               #S'E                  p                =p#              select: E -> TE'
+             #S'E'T                  p                =p#              select: T -> FT'
+           #S'E'T'F                  p                =p#                select: F -> p
+           #S'E'T'p                  p                =p#                    match: p=p
+            #S'E'T'                  =                 p#               select: T' -> e
+              #S'E'                  =                 p#               select: E' -> e
+                #S'                  =                 p#            select: S' -> =ES'
+              #S'E=                  =                 p#                    match: ===
+               #S'E                  p                  #              select: E -> TE'
+             #S'E'T                  p                  #              select: T -> FT'
+           #S'E'T'F                  p                  #                select: F -> p
+           #S'E'T'p                  p                  #                    match: p=p
+            #S'E'T'                  #                                  select: T' -> e
+              #S'E'                  #                                  select: E' -> e
+                #S'                  #                                  select: S' -> e
+                  #                  #                                       match: #=#
+Everything fine.
+
+     Analysis stack     Current symbol      Remaining seq                     Operation
+                 #S                                  p=p#                         Start
+                 #S                  p                =p#              select: S -> ES'
+               #S'E                  p                =p#              select: E -> TE'
+             #S'E'T                  p                =p#              select: T -> FT'
+           #S'E'T'F                  p                =p#                select: F -> p
+           #S'E'T'p                  p                =p#                    match: p=p
+            #S'E'T'                  =                 p#               select: T' -> e
+              #S'E'                  =                 p#               select: E' -> e
+                #S'                  =                 p#            select: S' -> =ES'
+              #S'E=                  =                 p#                    match: ===
+               #S'E                  p                  #              select: E -> TE'
+             #S'E'T                  p                  #              select: T -> FT'
+           #S'E'T'F                  p                  #                select: F -> p
+           #S'E'T'p                  p                  #                    match: p=p
+            #S'E'T'                  #                                  select: T' -> e
+              #S'E'                  #                                  select: E' -> e
+                #S'                  #                                  select: S' -> e
+                  #                  #                                       match: #=#
+Everything fine.
+
+     Analysis stack     Current symbol      Remaining seq                     Operation
+                 #S                            p=pw1pw0p#                         Start
+                 #S                  p          =pw1pw0p#              select: S -> ES'
+               #S'E                  p          =pw1pw0p#              select: E -> TE'
+             #S'E'T                  p          =pw1pw0p#              select: T -> FT'
+           #S'E'T'F                  p          =pw1pw0p#                select: F -> p
+           #S'E'T'p                  p          =pw1pw0p#                    match: p=p
+            #S'E'T'                  =           pw1pw0p#               select: T' -> e
+              #S'E'                  =           pw1pw0p#               select: E' -> e
+                #S'                  =           pw1pw0p#            select: S' -> =ES'
+              #S'E=                  =           pw1pw0p#                    match: ===
+               #S'E                  p            w1pw0p#              select: E -> TE'
+             #S'E'T                  p            w1pw0p#              select: T -> FT'
+           #S'E'T'F                  p            w1pw0p#                select: F -> p
+           #S'E'T'p                  p            w1pw0p#                    match: p=p
+            #S'E'T'                 w1              pw0p#           select: T' -> w1FT'
+         #S'E'T'Fw1                 w1              pw0p#                  match: w1=w1
+           #S'E'T'F                  p               w0p#                select: F -> p
+           #S'E'T'p                  p               w0p#                    match: p=p
+            #S'E'T'                 w0                 p#               select: T' -> e
+              #S'E'                 w0                 p#           select: E' -> w0TE'
+           #S'E'Tw0                 w0                 p#                  match: w0=w0
+             #S'E'T                  p                  #              select: T -> FT'
+           #S'E'T'F                  p                  #                select: F -> p
+           #S'E'T'p                  p                  #                    match: p=p
+            #S'E'T'                  #                                  select: T' -> e
+              #S'E'                  #                                  select: E' -> e
+                #S'                  #                                  select: S' -> e
+                  #                  #                                       match: #=#
+Everything fine.
+
+     Analysis stack     Current symbol      Remaining seq                     Operation
+                 #S                          p=pw1(pw0p)#                         Start
+                 #S                  p        =pw1(pw0p)#              select: S -> ES'
+               #S'E                  p        =pw1(pw0p)#              select: E -> TE'
+             #S'E'T                  p        =pw1(pw0p)#              select: T -> FT'
+           #S'E'T'F                  p        =pw1(pw0p)#                select: F -> p
+           #S'E'T'p                  p        =pw1(pw0p)#                    match: p=p
+            #S'E'T'                  =         pw1(pw0p)#               select: T' -> e
+              #S'E'                  =         pw1(pw0p)#               select: E' -> e
+                #S'                  =         pw1(pw0p)#            select: S' -> =ES'
+              #S'E=                  =         pw1(pw0p)#                    match: ===
+               #S'E                  p          w1(pw0p)#              select: E -> TE'
+             #S'E'T                  p          w1(pw0p)#              select: T -> FT'
+           #S'E'T'F                  p          w1(pw0p)#                select: F -> p
+           #S'E'T'p                  p          w1(pw0p)#                    match: p=p
+            #S'E'T'                 w1            (pw0p)#           select: T' -> w1FT'
+         #S'E'T'Fw1                 w1            (pw0p)#                  match: w1=w1
+           #S'E'T'F                  (             pw0p)#              select: F -> (S)
+         #S'E'T')S(                  (             pw0p)#                    match: (=(
+          #S'E'T')S                  p              w0p)#              select: S -> ES'
+        #S'E'T')S'E                  p              w0p)#              select: E -> TE'
+      #S'E'T')S'E'T                  p              w0p)#              select: T -> FT'
+    #S'E'T')S'E'T'F                  p              w0p)#                select: F -> p
+    #S'E'T')S'E'T'p                  p              w0p)#                    match: p=p
+     #S'E'T')S'E'T'                 w0                p)#               select: T' -> e
+       #S'E'T')S'E'                 w0                p)#           select: E' -> w0TE'
+    #S'E'T')S'E'Tw0                 w0                p)#                  match: w0=w0
+      #S'E'T')S'E'T                  p                 )#              select: T -> FT'
+    #S'E'T')S'E'T'F                  p                 )#                select: F -> p
+    #S'E'T')S'E'T'p                  p                 )#                    match: p=p
+     #S'E'T')S'E'T'                  )                  #               select: T' -> e
+       #S'E'T')S'E'                  )                  #               select: E' -> e
+         #S'E'T')S'                  )                  #               select: S' -> e
+           #S'E'T')                  )                  #                    match: )=)
+            #S'E'T'                  #                                  select: T' -> e
+              #S'E'                  #                                  select: E' -> e
+                #S'                  #                                  select: S' -> e
+                  #                  #                                       match: #=#
+Everything fine.
+
+     Analysis stack     Current symbol      Remaining seq                     Operation
+                 #S                          p=(pw0p)w1p#                         Start
+                 #S                  p        =(pw0p)w1p#              select: S -> ES'
+               #S'E                  p        =(pw0p)w1p#              select: E -> TE'
+             #S'E'T                  p        =(pw0p)w1p#              select: T -> FT'
+           #S'E'T'F                  p        =(pw0p)w1p#                select: F -> p
+           #S'E'T'p                  p        =(pw0p)w1p#                    match: p=p
+            #S'E'T'                  =         (pw0p)w1p#               select: T' -> e
+              #S'E'                  =         (pw0p)w1p#               select: E' -> e
+                #S'                  =         (pw0p)w1p#            select: S' -> =ES'
+              #S'E=                  =         (pw0p)w1p#                    match: ===
+               #S'E                  (          pw0p)w1p#              select: E -> TE'
+             #S'E'T                  (          pw0p)w1p#              select: T -> FT'
+           #S'E'T'F                  (          pw0p)w1p#              select: F -> (S)
+         #S'E'T')S(                  (          pw0p)w1p#                    match: (=(
+          #S'E'T')S                  p           w0p)w1p#              select: S -> ES'
+        #S'E'T')S'E                  p           w0p)w1p#              select: E -> TE'
+      #S'E'T')S'E'T                  p           w0p)w1p#              select: T -> FT'
+    #S'E'T')S'E'T'F                  p           w0p)w1p#                select: F -> p
+    #S'E'T')S'E'T'p                  p           w0p)w1p#                    match: p=p
+     #S'E'T')S'E'T'                 w0             p)w1p#               select: T' -> e
+       #S'E'T')S'E'                 w0             p)w1p#           select: E' -> w0TE'
+    #S'E'T')S'E'Tw0                 w0             p)w1p#                  match: w0=w0
+      #S'E'T')S'E'T                  p              )w1p#              select: T -> FT'
+    #S'E'T')S'E'T'F                  p              )w1p#                select: F -> p
+    #S'E'T')S'E'T'p                  p              )w1p#                    match: p=p
+     #S'E'T')S'E'T'                  )               w1p#               select: T' -> e
+       #S'E'T')S'E'                  )               w1p#               select: E' -> e
+         #S'E'T')S'                  )               w1p#               select: S' -> e
+           #S'E'T')                  )               w1p#                    match: )=)
+            #S'E'T'                 w1                 p#           select: T' -> w1FT'
+         #S'E'T'Fw1                 w1                 p#                  match: w1=w1
+           #S'E'T'F                  p                  #                select: F -> p
+           #S'E'T'p                  p                  #                    match: p=p
+            #S'E'T'                  #                                  select: T' -> e
+              #S'E'                  #                                  select: E' -> e
+                #S'                  #                                  select: S' -> e
+                  #                  #                                       match: #=#
+Everything fine.
+
+     Analysis stack     Current symbol      Remaining seq                     Operation
+                 #S                                  p=p#                         Start
+                 #S                  p                =p#              select: S -> ES'
+               #S'E                  p                =p#              select: E -> TE'
+             #S'E'T                  p                =p#              select: T -> FT'
+           #S'E'T'F                  p                =p#                select: F -> p
+           #S'E'T'p                  p                =p#                    match: p=p
+            #S'E'T'                  =                 p#               select: T' -> e
+              #S'E'                  =                 p#               select: E' -> e
+                #S'                  =                 p#            select: S' -> =ES'
+              #S'E=                  =                 p#                    match: ===
+               #S'E                  p                  #              select: E -> TE'
+             #S'E'T                  p                  #              select: T -> FT'
+           #S'E'T'F                  p                  #                select: F -> p
+           #S'E'T'p                  p                  #                    match: p=p
+            #S'E'T'                  #                                  select: T' -> e
+              #S'E'                  #                                  select: E' -> e
+                #S'                  #                                  select: S' -> e
+                  #                  #                                       match: #=#
+Everything fine.
+
