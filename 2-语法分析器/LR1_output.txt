@@ -1,0 +1,130 @@
+*************************** Output of LR1 synatactic analyzer:***************************
+For expression: a=1
+                     Analysis stack  Current symbol      Remaining seq          Operation
+                                #0                                p=p#              Start
+                                #0                p                =p#            next(p)
+                                #0                p                =p#          push: p16
+                            #0 p16                =                 p#       reduce: r(9)
+                             #0 V2                =                 p#           push: =3
+                          #0 V2 =3                p                  #          push: p12
+                      #0 V2 =3 p12                #                          reduce: r(7)
+                      #0 V2 =3 F11                #                          reduce: r(6)
+                       #0 V2 =3 T8                #                          reduce: r(4)
+                       #0 V2 =3 E4                #                          reduce: r(1)
+                             #0 S1                #                                    ok
+Everything fine.
+
+For expression: b=0b11
+                     Analysis stack  Current symbol      Remaining seq          Operation
+                                #0                                p=p#              Start
+                                #0                p                =p#            next(p)
+                                #0                p                =p#          push: p16
+                            #0 p16                =                 p#       reduce: r(9)
+                             #0 V2                =                 p#           push: =3
+                          #0 V2 =3                p                  #          push: p12
+                      #0 V2 =3 p12                #                          reduce: r(7)
+                      #0 V2 =3 F11                #                          reduce: r(6)
+                       #0 V2 =3 T8                #                          reduce: r(4)
+                       #0 V2 =3 E4                #                          reduce: r(1)
+                             #0 S1                #                                    ok
+Everything fine.
+
+For expression: a=a*b+a
+                     Analysis stack  Current symbol      Remaining seq          Operation
+                                #0                          p=pw1pw0p#              Start
+                                #0                p          =pw1pw0p#            next(p)
+                                #0                p          =pw1pw0p#          push: p16
+                            #0 p16                =           pw1pw0p#       reduce: r(9)
+                             #0 V2                =           pw1pw0p#           push: =3
+                          #0 V2 =3                p            w1pw0p#          push: p12
+                      #0 V2 =3 p12               w1              pw0p#       reduce: r(7)
+                      #0 V2 =3 F11               w1              pw0p#       reduce: r(6)
+                       #0 V2 =3 T8               w1              pw0p#          push: w19
+                   #0 V2 =3 T8 w19                p               w0p#          push: p12
+               #0 V2 =3 T8 w19 p12               w0                 p#       reduce: r(7)
+               #0 V2 =3 T8 w19 F10               w0                 p#       reduce: r(5)
+                       #0 V2 =3 T8               w0                 p#       reduce: r(4)
+                       #0 V2 =3 E4               w0                 p#          push: w06
+                   #0 V2 =3 E4 w06                p                  #          push: p12
+               #0 V2 =3 E4 w06 p12                #                          reduce: r(7)
+               #0 V2 =3 E4 w06 F11                #                          reduce: r(6)
+                #0 V2 =3 E4 w06 T7                #                          reduce: r(3)
+                       #0 V2 =3 E4                #                          reduce: r(1)
+                             #0 S1                #                                    ok
+Everything fine.
+
+For expression: a=a/(b-a)
+                     Analysis stack  Current symbol      Remaining seq          Operation
+                                #0                        p=pw1(pw0p)#              Start
+                                #0                p        =pw1(pw0p)#            next(p)
+                                #0                p        =pw1(pw0p)#          push: p16
+                            #0 p16                =         pw1(pw0p)#       reduce: r(9)
+                             #0 V2                =         pw1(pw0p)#           push: =3
+                          #0 V2 =3                p          w1(pw0p)#          push: p12
+                      #0 V2 =3 p12               w1            (pw0p)#       reduce: r(7)
+                      #0 V2 =3 F11               w1            (pw0p)#       reduce: r(6)
+                       #0 V2 =3 T8               w1            (pw0p)#          push: w19
+                   #0 V2 =3 T8 w19                (             pw0p)#          push: (13
+               #0 V2 =3 T8 w19 (13                p              w0p)#          push: p12
+           #0 V2 =3 T8 w19 (13 p12               w0                p)#       reduce: r(7)
+           #0 V2 =3 T8 w19 (13 F11               w0                p)#       reduce: r(6)
+            #0 V2 =3 T8 w19 (13 T8               w0                p)#       reduce: r(4)
+            #0 V2 =3 T8 w19 (13 E5               w0                p)#          push: w06
+        #0 V2 =3 T8 w19 (13 E5 w06                p                 )#          push: p12
+    #0 V2 =3 T8 w19 (13 E5 w06 p12                )                  #       reduce: r(7)
+    #0 V2 =3 T8 w19 (13 E5 w06 F11                )                  #       reduce: r(6)
+     #0 V2 =3 T8 w19 (13 E5 w06 T7                )                  #       reduce: r(3)
+            #0 V2 =3 T8 w19 (13 E5                )                  #          push: )15
+        #0 V2 =3 T8 w19 (13 E5 )15                #                          reduce: r(8)
+               #0 V2 =3 T8 w19 F10                #                          reduce: r(5)
+                       #0 V2 =3 T8                #                          reduce: r(4)
+                       #0 V2 =3 E4                #                          reduce: r(1)
+                             #0 S1                #                                    ok
+Everything fine.
+
+For expression: a=(a+b)%a
+                     Analysis stack  Current symbol      Remaining seq          Operation
+                                #0                        p=(pw0p)w1p#              Start
+                                #0                p        =(pw0p)w1p#            next(p)
+                                #0                p        =(pw0p)w1p#          push: p16
+                            #0 p16                =         (pw0p)w1p#       reduce: r(9)
+                             #0 V2                =         (pw0p)w1p#           push: =3
+                          #0 V2 =3                (          pw0p)w1p#          push: (13
+                      #0 V2 =3 (13                p           w0p)w1p#          push: p12
+                  #0 V2 =3 (13 p12               w0             p)w1p#       reduce: r(7)
+                  #0 V2 =3 (13 F11               w0             p)w1p#       reduce: r(6)
+                   #0 V2 =3 (13 T8               w0             p)w1p#       reduce: r(4)
+                   #0 V2 =3 (13 E5               w0             p)w1p#          push: w06
+               #0 V2 =3 (13 E5 w06                p              )w1p#          push: p12
+           #0 V2 =3 (13 E5 w06 p12                )               w1p#       reduce: r(7)
+           #0 V2 =3 (13 E5 w06 F11                )               w1p#       reduce: r(6)
+            #0 V2 =3 (13 E5 w06 T7                )               w1p#       reduce: r(3)
+                   #0 V2 =3 (13 E5                )               w1p#          push: )15
+               #0 V2 =3 (13 E5 )15               w1                 p#       reduce: r(8)
+                      #0 V2 =3 F11               w1                 p#       reduce: r(6)
+                       #0 V2 =3 T8               w1                 p#          push: w19
+                   #0 V2 =3 T8 w19                p                  #          push: p12
+               #0 V2 =3 T8 w19 p12                #                          reduce: r(7)
+               #0 V2 =3 T8 w19 F10                #                          reduce: r(5)
+                       #0 V2 =3 T8                #                          reduce: r(4)
+                       #0 V2 =3 E4                #                          reduce: r(1)
+                             #0 S1                #                                    ok
+Everything fine.
+
+For expression: i=0
+                     Analysis stack  Current symbol      Remaining seq          Operation
+                                #0                                p=p#              Start
+                                #0                p                =p#            next(p)
+                                #0                p                =p#          push: p16
+                            #0 p16                =                 p#       reduce: r(9)
+                             #0 V2                =                 p#           push: =3
+                          #0 V2 =3                p                  #          push: p12
+                      #0 V2 =3 p12                #                          reduce: r(7)
+                      #0 V2 =3 F11                #                          reduce: r(6)
+                       #0 V2 =3 T8                #                          reduce: r(4)
+                       #0 V2 =3 E4                #                          reduce: r(1)
+                             #0 S1                #                                    ok
+Everything fine.
+
+***************************   End of LR1 synatactic analyzer: ***************************
+
