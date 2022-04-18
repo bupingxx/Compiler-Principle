@@ -62,16 +62,10 @@ clang version 13.0.1
 ​	实现的功能有：
 
 - 表达式支持`=`, `+`, `-`, `*`, `/`, `%`以及`()`
-- 分别使用LL(1)分析法和LR(0)分析法，并展示了每一步的分析流程
+- 分别使用LL(1)分析法和LR(1)分析法，并展示了每一步的分析流程
 - 封装了上次实验使用的词法分析器，对词法分析器的输出直接进行语法分析
 
-
-
-
-
-### 2.4 实验原理
-
-##### 1. 算术表达式文法
+​	使用的算术表达式文法如下：
 
 > (1) S -> V=E | E
 >
@@ -85,106 +79,164 @@ clang version 13.0.1
 >
 > 其中p为数字或常数，w0代表`+`或`-`，w1代表`*`，`/`或`%`
 
-###### LL(1) 文法
-
-​	消除左递归，得到的LL(1)文法如下
-
-> (1) S -> V=E  | E
->
-> (2) V -> p
->
-> (3) E -> TE' 
->
-> (4) E' -> w0TE'  | e 
->
-> (5) T -> FT' 
->
-> (6) T' -> w1FT'  | e 
->
-> (7) F ->  p  | (E) 
-
-​	求first, follow集合如下：
-
-|      | FIRST集 | FOLLOW集     |
-| ---- | ------- | ------------ |
-| S    | p, (    | #            |
-| V    | p       | p, (, =, #   |
-| E    | p, (    | ), #         |
-| E'   | w0, e   | ), #         |
-| T    | p, (    | w0, ), #     |
-| T'   | w1, e   | w0, ), #     |
-| F    | p, (    | w1, w0, ), # |
-
-​	可以证明对于相同左部的产生式，它们的select集合不相交，故符合LL(1)文法。构造LL(1)分析表：
-
-|      | (    | p    | =    | w0    | w1    | )    | #    |
-| ---- | ---- | ---- | ---- | ----- | ----- | ---- | ---- |
-| S    | V=E  | V=E  |      |       |       |      |      |
-| V    |      | p    |      |       |       |      |      |
-| E    | TE'  | TE'  |      |       |       |      |      |
-| E'   |      |      |      | w0TE' |       | e    | e    |
-| T    | FT'  | FT'  |      |       |       |      |      |
-| T'   |      |      |      | e     | w1FT' | e    | e    |
-| F    | (E)  | p    |      |       |       |      |      |
-
-###### LR(1) 文法
-
-​	修改并扩展文法，使文法符号附有位置信息：
-
-> (1) G -> S^1^
->
-> (2) S -> V^2^=^3^E^4^  **r(1)** | E^5^  **r(2)**
->
-> (4) E -> E^4,5^w0^6^T^7^  **r(3)**| T^8^ **r(4)**
->
-> (5) T -> T^7,8^w1^9^F^10^  **r(5)**| F^11^  **r(6)**
->
-> (6) F ->  p^12^ **r(7)** | (^13^E^14^)^15^  **r(8)**
->
-> (7) V -> P^16^ **r(9)**
-
-​	转换为DFA，如下所示，可以看到结束态`9`和`10`存在规约冲突，LR(0)分析法不能满足需求，故这里使用LR(1)分析法。
-
-![](E:\code\C\compiler\syntactic\LR0_DFA.png)
-
-​	转化DFA如下，其中`w(x)`表示检查下一个单词为`x`：
-
-![](E:\code\C\compiler\syntactic\LR1_DFA.png)
-
-​	注意，实际上的DFA转换关系远比上图更复杂，上图仅为简化的图片，完整的状态转换请参考如下的LR(1) 分析表：
-
-|      | (     | p            | =    | w0    | w1    | )     | #      | S     | V    | E    | T    | F     |
-| ---- | ----- | ------------ | ---- | ----- | ----- | ----- | ------ | ----- | ---- | ---- | ---- | ----- |
-| 0    | (^13^ | p^12^, p^16^ |      |       |       |       |        | S^1^  | V^2^ | E^5^ |      |       |
-| 1    |       |              |      |       |       |       | **ok** |       |      |      |      |       |
-| 2    |       |              | =^3^ |       |       |       |        |       |      |      |      |       |
-| 3    | (^13^ | p^12^        |      |       |       |       |        |       |      | E^4^ |      |       |
-| 4    | r(1)  | r(1)         | r(1) | w0^6^ | r(1)  | )^15^ | r(1)   |       |      |      | T^8^ |       |
-| 5    | r(2)  | r(2)         | r(2) | w0^6^ | r(2)  | )^15^ | r(2)   |       |      |      | T^8^ |       |
-| 6    | (^13^ | p^12^        |      |       |       |       |        |       |      |      | T^7^ |       |
-| 7    | r(3)  | r(3)         | r(3) | r(3)  | w1^9^ | r(3)  | r(3)   |       |      |      |      | F^11^ |
-| 8    | r(4)  | r(4)         | r(4) | r(4)  | w1^9^ | r(4)  | r(4)   |       |      |      |      | F^11^ |
-| 9    | (^13^ | p^12^        |      |       |       |       |        |       |      |      |      | F^10^ |
-| 10   | (^13^ | p^12^        | r(5) | r(5)  | r(5)  | r(5)  | r(5)   |       |      |      |      |       |
-| 11   | (^13^ | p^12^        | r(6) | r(6)  | r(6)  | r(6)  | r(6)   |       |      |      |      |       |
-| 12   | r(7)  | r(7)         | r(7) | r(7)  | r(7)  | r(7)  | r(7)   |       |      |      |      |       |
-| 13   | (^13^ | p^12^        |      |       |       |       |        | E^14^ |      |      |      |       |
-| 14   |       |              |      |       |       | )^15^ |        |       |      |      |      |       |
-| 15   | r(8)  | r(8)         | r(8) | r(8)  | r(8)  | r(8)  | r(8)   |       |      |      |      |       |
-| 16   | r(9)  | r(9)         | r(9) | r(9)  | r(9)  | r(9)  | r(9)   |       |      |      |      |       |
 
 
+### 2.4 实验结果
 
-如何得到当前状态？ 栈顶 -> 符号+数字
+​	对于`demo.c`，`LL(1)`输出为：
 
-产生式的转换
+```
+*************************** Output of LL1 synatactic analyzer:***************************
+For expression: a=1
+     Analysis stack     Current symbol      Remaining seq                     Operation
+                 #S                                  p=p#                         Start
+                 #S                  p                =p#              select: S -> V=E
+               #E=V                  p                =p#                select: V -> p
+               #E=p                  p                =p#                    match: p=p
+                #E=                  =                 p#                    match: ===
+                 #E                  p                  #              select: E -> TE'
+               #E'T                  p                  #              select: T -> FT'
+             #E'T'F                  p                  #                select: F -> p
+             #E'T'p                  p                  #                    match: p=p
+              #E'T'                  #                                  select: T' -> e
+                #E'                  #                                  select: E' -> e
+                  #                  #                                       match: #=#
+Everything fine.
 
-状态的转换（当前状态（仅数字）+栈中前一个符号（带数字）+队列中当前符号）
+For expression: a=a*b+a
+     Analysis stack     Current symbol      Remaining seq                     Operation
+                 #S                            p=pw1pw0p#                         Start
+                 #S                  p          =pw1pw0p#              select: S -> V=E
+               #E=V                  p          =pw1pw0p#                select: V -> p
+               #E=p                  p          =pw1pw0p#                    match: p=p
+                #E=                  =           pw1pw0p#                    match: ===
+                 #E                  p            w1pw0p#              select: E -> TE'
+               #E'T                  p            w1pw0p#              select: T -> FT'
+             #E'T'F                  p            w1pw0p#                select: F -> p
+             #E'T'p                  p            w1pw0p#                    match: p=p
+              #E'T'                 w1              pw0p#           select: T' -> w1FT'
+           #E'T'Fw1                 w1              pw0p#                  match: w1=w1
+             #E'T'F                  p               w0p#                select: F -> p
+             #E'T'p                  p               w0p#                    match: p=p
+              #E'T'                 w0                 p#               select: T' -> e
+                #E'                 w0                 p#           select: E' -> w0TE'
+             #E'Tw0                 w0                 p#                  match: w0=w0
+               #E'T                  p                  #              select: T -> FT'
+             #E'T'F                  p                  #                select: F -> p
+             #E'T'p                  p                  #                    match: p=p
+              #E'T'                  #                                  select: T' -> e
+                #E'                  #                                  select: E' -> e
+                  #                  #                                       match: #=#
+Everything fine.
 
+For expression: a=a/(b-a)
+     Analysis stack     Current symbol      Remaining seq                     Operation
+                 #S                          p=pw1(pw0p)#                         Start
+                 #S                  p        =pw1(pw0p)#              select: S -> V=E
+               #E=V                  p        =pw1(pw0p)#                select: V -> p
+               #E=p                  p        =pw1(pw0p)#                    match: p=p
+                #E=                  =         pw1(pw0p)#                    match: ===
+                 #E                  p          w1(pw0p)#              select: E -> TE'
+               #E'T                  p          w1(pw0p)#              select: T -> FT'
+             #E'T'F                  p          w1(pw0p)#                select: F -> p
+             #E'T'p                  p          w1(pw0p)#                    match: p=p
+              #E'T'                 w1            (pw0p)#           select: T' -> w1FT'
+           #E'T'Fw1                 w1            (pw0p)#                  match: w1=w1
+             #E'T'F                  (             pw0p)#              select: F -> (E)
+           #E'T')E(                  (             pw0p)#                    match: (=(
+            #E'T')E                  p              w0p)#              select: E -> TE'
+          #E'T')E'T                  p              w0p)#              select: T -> FT'
+        #E'T')E'T'F                  p              w0p)#                select: F -> p
+        #E'T')E'T'p                  p              w0p)#                    match: p=p
+         #E'T')E'T'                 w0                p)#               select: T' -> e
+           #E'T')E'                 w0                p)#           select: E' -> w0TE'
+        #E'T')E'Tw0                 w0                p)#                  match: w0=w0
+          #E'T')E'T                  p                 )#              select: T -> FT'
+        #E'T')E'T'F                  p                 )#                select: F -> p
+        #E'T')E'T'p                  p                 )#                    match: p=p
+         #E'T')E'T'                  )                  #               select: T' -> e
+           #E'T')E'                  )                  #               select: E' -> e
+             #E'T')                  )                  #                    match: )=)
+              #E'T'                  #                                  select: T' -> e
+                #E'                  #                                  select: E' -> e
+                  #                  #                                       match: #=#
+Everything fine.
 
+***************************   End of LL1 synatactic analyzer: ***************************
+```
 
-先判断可不可以规约
+​	`LR(1)`输出结果为：
 
-再判断可不可以移进
+```
+*************************** Output of LR1 synatactic analyzer:***************************
+For expression: a=1
+                     Analysis stack  Current symbol      Remaining seq          Operation
+                                #0                                p=p#              Start
+                                #0                p                =p#            next(p)
+                                #0                p                =p#          push: p16
+                            #0 p16                =                 p#       reduce: r(9)
+                             #0 V2                =                 p#           push: =3
+                          #0 V2 =3                p                  #          push: p12
+                      #0 V2 =3 p12                #                          reduce: r(7)
+                      #0 V2 =3 F11                #                          reduce: r(6)
+                       #0 V2 =3 T8                #                          reduce: r(4)
+                       #0 V2 =3 E4                #                          reduce: r(1)
+                             #0 S1                #                                    ok
+Everything fine.
 
-规约或移进后进行状态转换
+For expression: a=a*b+a
+                     Analysis stack  Current symbol      Remaining seq          Operation
+                                #0                          p=pw1pw0p#              Start
+                                #0                p          =pw1pw0p#            next(p)
+                                #0                p          =pw1pw0p#          push: p16
+                            #0 p16                =           pw1pw0p#       reduce: r(9)
+                             #0 V2                =           pw1pw0p#           push: =3
+                          #0 V2 =3                p            w1pw0p#          push: p12
+                      #0 V2 =3 p12               w1              pw0p#       reduce: r(7)
+                      #0 V2 =3 F11               w1              pw0p#       reduce: r(6)
+                       #0 V2 =3 T8               w1              pw0p#          push: w19
+                   #0 V2 =3 T8 w19                p               w0p#          push: p12
+               #0 V2 =3 T8 w19 p12               w0                 p#       reduce: r(7)
+               #0 V2 =3 T8 w19 F10               w0                 p#       reduce: r(5)
+                       #0 V2 =3 T8               w0                 p#       reduce: r(4)
+                       #0 V2 =3 E4               w0                 p#          push: w06
+                   #0 V2 =3 E4 w06                p                  #          push: p12
+               #0 V2 =3 E4 w06 p12                #                          reduce: r(7)
+               #0 V2 =3 E4 w06 F11                #                          reduce: r(6)
+                #0 V2 =3 E4 w06 T7                #                          reduce: r(3)
+                       #0 V2 =3 E4                #                          reduce: r(1)
+                             #0 S1                #                                    ok
+Everything fine.
+
+For expression: a=a/(b-a)
+                     Analysis stack  Current symbol      Remaining seq          Operation
+                                #0                        p=pw1(pw0p)#              Start
+                                #0                p        =pw1(pw0p)#            next(p)
+                                #0                p        =pw1(pw0p)#          push: p16
+                            #0 p16                =         pw1(pw0p)#       reduce: r(9)
+                             #0 V2                =         pw1(pw0p)#           push: =3
+                          #0 V2 =3                p          w1(pw0p)#          push: p12
+                      #0 V2 =3 p12               w1            (pw0p)#       reduce: r(7)
+                      #0 V2 =3 F11               w1            (pw0p)#       reduce: r(6)
+                       #0 V2 =3 T8               w1            (pw0p)#          push: w19
+                   #0 V2 =3 T8 w19                (             pw0p)#          push: (13
+               #0 V2 =3 T8 w19 (13                p              w0p)#          push: p12
+           #0 V2 =3 T8 w19 (13 p12               w0                p)#       reduce: r(7)
+           #0 V2 =3 T8 w19 (13 F11               w0                p)#       reduce: r(6)
+            #0 V2 =3 T8 w19 (13 T8               w0                p)#       reduce: r(4)
+            #0 V2 =3 T8 w19 (13 E5               w0                p)#          push: w06
+        #0 V2 =3 T8 w19 (13 E5 w06                p                 )#          push: p12
+    #0 V2 =3 T8 w19 (13 E5 w06 p12                )                  #       reduce: r(7)
+    #0 V2 =3 T8 w19 (13 E5 w06 F11                )                  #       reduce: r(6)
+     #0 V2 =3 T8 w19 (13 E5 w06 T7                )                  #       reduce: r(3)
+            #0 V2 =3 T8 w19 (13 E5                )                  #          push: )15
+        #0 V2 =3 T8 w19 (13 E5 )15                #                          reduce: r(8)
+               #0 V2 =3 T8 w19 F10                #                          reduce: r(5)
+                       #0 V2 =3 T8                #                          reduce: r(4)
+                       #0 V2 =3 E4                #                          reduce: r(1)
+                             #0 S1                #                                    ok
+Everything fine.
+
+***************************   End of LR1 synatactic analyzer: ***************************
+```
+
