@@ -171,7 +171,7 @@ vector<string> LL1_synt::search_table(string non_ter, string ter){
             break;
         }
     }
-    if(x == -1 || y == -1 || table[x][y][0] == "NULL")  // error 
+    if(x == -1 || y == -1 )  // error 
         print_error(2, non_ter + " -- " + ter);
     
     return table[x][y];
@@ -221,6 +221,9 @@ void LL1_synt::analyse(string expr, queue<string> input){
             cur_symbol.clear();
         } else {
             vector<string> new_symbols = search_table(stk_symbol, cur_symbol);
+            // NULL
+            if(new_symbols[0] == "NULL")
+                print_error(1, expr);
 
             string info = "";
             for(string str:new_symbols)
@@ -456,7 +459,7 @@ void LR1_synt::analyse(string expr, queue<string> input){
             if(input.empty()){  // error
                 print_error(3, cur_symbol);
             }   
-                
+            // next(word)    
             cur_symbol = input.front();
             input.pop();
             cur_info = cur_symbol;
@@ -554,6 +557,6 @@ void LR1_synt::parse(){
 int main(){
     Lexical lex("demo.c");
     LL1_synt LL(lex.get_results());
-    LR1_synt LR(lex.get_results());
+    //LR1_synt LR(lex.get_results());
     return 0;
 }
