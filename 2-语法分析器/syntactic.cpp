@@ -557,6 +557,6 @@ void LR1_synt::parse(){
 int main(){
     Lexical lex("demo.c");
     LL1_synt LL(lex.get_results());
-    //LR1_synt LR(lex.get_results());
+    LR1_synt LR(lex.get_results());
     return 0;
 }
