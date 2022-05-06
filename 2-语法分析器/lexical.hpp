@@ -73,6 +73,7 @@ Lexical::Lexical(){
     char_flag = 0;
     string_flag = 0;
     dot_flag = 0;
+    note_flag = 0;
     init_set();
 }
 
@@ -81,6 +82,7 @@ Lexical::Lexical(const char* file_name){
     char_flag = 0;
     string_flag = 0;
     dot_flag = 0;
+    note_flag = 0;
     init_set();
     if(lexical_print) print_table();
     analyse(file_name);
