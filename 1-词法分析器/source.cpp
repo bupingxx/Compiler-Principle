@@ -66,6 +66,7 @@ Lexical::Lexical(){
     char_flag = 0;
     string_flag = 0;
     dot_flag = 0;
+    note_flag = 0;
     init_set();
 }
 
@@ -74,6 +75,7 @@ Lexical::Lexical(const char* file_name){
     char_flag = 0;
     string_flag = 0;
     dot_flag = 0;
+    note_flag = 0;
     init_set();
     print_table();
     analyse(file_name);
@@ -374,7 +376,7 @@ void Lexical::state_change(int& state, char ch){
                 } else {
                     print_error(1, "");         // error
                 }
-            } else if (ch == 'f'){
+            } else if (ch == 'f' || ch == 'F'){
                 state = 5;
             } else {
                 state = 0;
@@ -439,6 +441,7 @@ void Lexical::state_change(int& state, char ch){
             print_error(2, to_string(state));         // error
     }
 
+    // Clear decimal point quantity
     if(state != 2)
         dot_flag = 0;
         
