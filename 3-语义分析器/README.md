@@ -88,10 +88,10 @@ clang version 13.0.1
 
 ​	`	LL(1)`翻译法输出为：
 
-![image-20220515023224870](E:\github\Compiler-Principle\3-语义分析器\src\image-1.png)
+![image-20220515023224870](https://github.com/bupingxx/Compiler-Principle/blob/main/3-%E8%AF%AD%E4%B9%89%E5%88%86%E6%9E%90%E5%99%A8/src/image-1.png)
 
-![image-20220515023246248](E:\github\Compiler-Principle\3-语义分析器\src\image-2.png)
+![image-20220515023246248](https://github.com/bupingxx/Compiler-Principle/blob/main/3-%E8%AF%AD%E4%B9%89%E5%88%86%E6%9E%90%E5%99%A8/src/image-2.png)
 
-![image-20220515023910405](E:\github\Compiler-Principle\3-语义分析器\src\image-3.png)
+![image-20220515023910405](https://github.com/bupingxx/Compiler-Principle/blob/main/3-%E8%AF%AD%E4%B9%89%E5%88%86%E6%9E%90%E5%99%A8/src/image-1.png)
 
 ### 
