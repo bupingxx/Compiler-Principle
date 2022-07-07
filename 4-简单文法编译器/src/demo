@@ -1,0 +1,18 @@
+program compare
+    var a,b:integer;
+    var c:integer;
+begin
+    if(a<b)
+    begin
+        c:=0;
+    end
+    elif(a>b)
+    begin
+        c:=1;
+    end
+    else
+    begin
+        c:=2;
+    end
+    c:=c;
+end

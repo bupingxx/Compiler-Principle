@@ -1,0 +1,16 @@
+program jump
+    var a,b:integer;
+    var c,d:real;
+begin
+    b=a*a;
+    while(a<b or c<d)
+    begin
+        d:=1000;
+        if(b<d)
+        begin
+            c:=c+1;
+        end
+        d:=10;
+    end
+    c:=c;
+end
